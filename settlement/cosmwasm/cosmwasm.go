@@ -30,7 +30,6 @@ import (
 )
 
 const (
-	addressPrefix     = "dym"
 	dymRollappVersion = 0
 	defaultGasLimit   = 300000
 )
@@ -169,7 +168,7 @@ func newDymensionHubClient(config settlement.Config, pubsub *pubsub.Server, logg
 		if err != nil {
 			return nil, err
 		}
-		dymesionHubClient.client = NewCosmosClient(client)
+		dymesionHubClient.client = NewCosmosClient(client, config.Contract)
 	}
 	dymesionHubClient.rollappQueryClient = dymesionHubClient.client.GetRollappClient()
 	dymesionHubClient.sequencerQueryClient = dymesionHubClient.client.GetSequencerClient()
@@ -402,7 +401,7 @@ func (d *HubClient) convertBatchToMsgUpdateState(batch *types.Batch, daClient da
 		return nil, err
 	}
 
-	addr, err := account.Address(addressPrefix)
+	addr, err := account.Address(d.config.AddressPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -439,7 +438,7 @@ func getCosmosClientOptions(config *settlement.Config) []cosmosclient.Option {
 		config.GasLimit = defaultGasLimit
 	}
 	options := []cosmosclient.Option{
-		cosmosclient.WithAddressPrefix(addressPrefix),
+		cosmosclient.WithAddressPrefix(config.AddressPrefix),
 		cosmosclient.WithBroadcastMode(flags.BroadcastSync),
 		cosmosclient.WithNodeAddress(config.NodeAddress),
 		cosmosclient.WithFees(config.GasFees),

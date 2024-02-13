@@ -12,6 +12,8 @@ type Config struct {
 	GasLimit       uint64 `mapstructure:"gas_limit"`
 	GasPrices      string `mapstructure:"gas_prices"`
 	GasFees        string `mapstructure:"gas_fees"`
+	AddressPrefix  string `mapstructure:"address_prefix"`
+	Contract       string `mapstructure:"contract"`
 
 	//For testing only. probably should be refactored
 	ProposerPubKey string `json:"proposer_pub_key"`

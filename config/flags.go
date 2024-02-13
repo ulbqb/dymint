@@ -28,6 +28,8 @@ const (
 	flagSLGasPrices      = "dymint.settlement_config.gas_prices"
 	flagSLGasFees        = "dymint.settlement_config.gas_fees"
 	flagRollappID        = "dymint.settlement_config.rollapp_id"
+	flagAddressPrefix    = "dymint.settlement_config.address_prefix"
+	flagContract         = "dymint.settlement_config.contract"
 )
 
 // AddFlags adds Dymint specific configuration options to cobra Command.
@@ -58,6 +60,8 @@ func AddNodeFlags(cmd *cobra.Command) {
 	cmd.Flags().String(flagSLGasPrices, def.SettlementConfig.GasPrices, "Settlement Layer gas prices")
 	cmd.Flags().Uint64(flagSLGasLimit, def.SettlementConfig.GasLimit, "Settlement Layer batch submit gas limit")
 	cmd.Flags().String(flagRollappID, def.SettlementConfig.RollappID, "The chainID of the rollapp")
+	cmd.Flags().String(flagAddressPrefix, def.SettlementConfig.AddressPrefix, "The addressPrefix of Settlement Layer")
+	cmd.Flags().String(flagContract, def.SettlementConfig.Contract, "The address of Settlement Layer contract")
 }
 
 func BindDymintFlags(cmd *cobra.Command, v *viper.Viper) error {
@@ -113,6 +117,12 @@ func BindDymintFlags(cmd *cobra.Command, v *viper.Viper) error {
 		return err
 	}
 	if err := v.BindPFlag("rollapp_id", cmd.Flags().Lookup(flagRollappID)); err != nil {
+		return err
+	}
+	if err := v.BindPFlag("address_prefix", cmd.Flags().Lookup(flagAddressPrefix)); err != nil {
+		return err
+	}
+	if err := v.BindPFlag("contract", cmd.Flags().Lookup(flagContract)); err != nil {
 		return err
 	}
 
