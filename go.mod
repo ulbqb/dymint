@@ -6,6 +6,7 @@ require (
 	code.cloudfoundry.org/go-diodes v0.0.0-20220725190411-383eb6634c40
 	cosmossdk.io/errors v1.0.0-beta.7
 	cosmossdk.io/math v1.1.2
+	github.com/CosmWasm/wasmd v0.33.0
 	github.com/avast/retry-go/v4 v4.5.0
 	github.com/celestiaorg/go-cnc v0.4.2
 	github.com/centrifuge/go-substrate-rpc-client/v4 v4.0.12
@@ -256,14 +257,20 @@ require (
 )
 
 require (
+	github.com/CosmWasm/wasmvm v1.2.6 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/cosmos/ibc-go/v6 v6.1.1 // indirect
+	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190812055157-5d271430af9f // indirect
+	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
+	github.com/regen-network/cosmos-proto v0.3.1 // indirect
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	golang.org/x/tools v0.12.1-0.20230815132531-74c255bcf846 // indirect
 )
 
 replace (
+	github.com/CosmWasm/wasmd => github.com/notional-labs/wasmd v0.30.1-sdk46-fix1
 	github.com/centrifuge/go-substrate-rpc-client/v4 => github.com/availproject/go-substrate-rpc-client/v4 v4.0.12-avail-1.4.0-rc1-5e286e3
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
 	github.com/gorilla/rpc => github.com/dymensionxyz/rpc v1.3.1
