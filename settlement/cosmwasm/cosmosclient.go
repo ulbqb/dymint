@@ -101,7 +101,7 @@ func (c *RollappClient) Rollapp(ctx context.Context, in *rollapptypes.QueryGetRo
 	panic("this is not supported")
 }
 
-// Queries a RollappByEIP155 by index.
+// Queries a Rollapp by index.
 func (c *RollappClient) RollappByEIP155(ctx context.Context, in *rollapptypes.QueryGetRollappByEIP155Request, opts ...grpc.CallOption) (*rollapptypes.QueryGetRollappResponse, error) {
 	panic("this is not supported")
 }
