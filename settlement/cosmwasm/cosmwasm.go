@@ -36,8 +36,8 @@ const (
 )
 
 const (
-	eventStateUpdate          = "state_update.rollapp_id='%s'"
-	eventSequencersListUpdate = "sequencers_list_update.rollapp_id='%s'"
+	eventStateUpdate          = "wasm-state_update.rollapp_id='%s'"
+	eventSequencersListUpdate = "wasm-sequencers_list_update.rollapp_id='%s'"
 )
 
 const (
@@ -490,11 +490,11 @@ func (d *HubClient) getEventData(eventType string, rawEventData ctypes.ResultEve
 
 func (d *HubClient) convertToNewBatchEvent(rawEventData ctypes.ResultEvent) (*settlement.EventDataNewSettlementBatchAccepted, error) {
 	var multiErr *multierror.Error
-	numBlocks, err := strconv.ParseInt(rawEventData.Events["state_update.num_blocks"][0], 10, 64)
+	numBlocks, err := strconv.ParseInt(rawEventData.Events["wasm-state_update.num_blocks"][0], 10, 64)
 	multiErr = multierror.Append(multiErr, err)
-	startHeight, err := strconv.ParseInt(rawEventData.Events["state_update.start_height"][0], 10, 64)
+	startHeight, err := strconv.ParseInt(rawEventData.Events["wasm-state_update.start_height"][0], 10, 64)
 	multiErr = multierror.Append(multiErr, err)
-	stateIndex, err := strconv.ParseInt(rawEventData.Events["state_update.state_info_index"][0], 10, 64)
+	stateIndex, err := strconv.ParseInt(rawEventData.Events["wasm-state_update.state_info_index"][0], 10, 64)
 	multiErr = multierror.Append(multiErr, err)
 	err = multiErr.ErrorOrNil()
 	if err != nil {
