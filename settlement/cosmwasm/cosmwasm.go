@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/avast/retry-go/v4"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -351,7 +352,32 @@ func (d *HubClient) GetSequencers(rollappID string) ([]*types.Sequencer, error) 
 
 func (d *HubClient) submitBatch(msgUpdateState *rollapptypes.MsgUpdateState) error {
 	err := retry.Do(func() error {
-		txResp, err := d.client.BroadcastTx(d.config.DymAccountName, msgUpdateState)
+
+		account, err := d.client.GetAccount(d.config.DymAccountName)
+		if err != nil {
+			return err
+		}
+
+		addr, err := account.Address(d.config.AddressPrefix)
+		if err != nil {
+			return err
+		}
+
+		innerMsgBytes, err := d.protoCodec.MarshalJSON(msgUpdateState)
+		if err != nil {
+			return err
+		}
+
+		convertedBytes := convertKeys(innerMsgBytes, toSnake)
+
+		msgWasmUpdateStateString := fmt.Sprintf("{\"rollapp\":{\"update_state\":%s}}", string(convertedBytes))
+		msgWasmExec := wasmtypes.MsgExecuteContract{
+			Sender:   addr,
+			Msg:      []byte(msgWasmUpdateStateString),
+			Contract: d.config.Contract,
+		}
+
+		txResp, err := d.client.BroadcastTx(d.config.DymAccountName, &msgWasmExec)
 		if err != nil || txResp.Code != 0 {
 			d.logger.Error("Error sending batch to settlement layer", "error", err)
 			return err

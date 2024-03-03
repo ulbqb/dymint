@@ -2,6 +2,7 @@ package cosmwasm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -10,6 +11,7 @@ import (
 	"github.com/dymensionxyz/cosmosclient/cosmosclient"
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/iancoleman/strcase"
 	"github.com/ignite/cli/ignite/pkg/cosmosaccount"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -66,14 +68,16 @@ func (c *cosmosClient) SubscribeToEvents(ctx context.Context, subscriber string,
 func (c *cosmosClient) GetRollappClient() rollapptypes.QueryClient {
 	return &RollappClient{
 		inner:     wasmtypes.NewQueryClient(c.Context()),
-		constract: "",
+		constract: c.constract,
+		context:   c.Context(),
 	}
 }
 
 func (c *cosmosClient) GetSequencerClient() sequencertypes.QueryClient {
 	return &SequencerClient{
 		inner:     wasmtypes.NewQueryClient(c.Context()),
-		constract: "",
+		constract: c.constract,
+		context:   c.Context(),
 	}
 }
 
@@ -84,6 +88,7 @@ func (c *cosmosClient) GetAccount(accountName string) (cosmosaccount.Account, er
 type RollappClient struct {
 	inner     wasmtypes.QueryClient
 	constract string
+	context   sdkclient.Context
 }
 
 // Parameters queries the parameters of the module.
@@ -93,6 +98,11 @@ func (c *RollappClient) Params(ctx context.Context, in *rollapptypes.QueryParams
 
 // Queries a Rollapp by index.
 func (c *RollappClient) Rollapp(ctx context.Context, in *rollapptypes.QueryGetRollappRequest, opts ...grpc.CallOption) (*rollapptypes.QueryGetRollappResponse, error) {
+	panic("this is not supported")
+}
+
+// Queries a RollappByEIP155 by index.
+func (c *RollappClient) RollappByEIP155(ctx context.Context, in *rollapptypes.QueryGetRollappByEIP155Request, opts ...grpc.CallOption) (*rollapptypes.QueryGetRollappResponse, error) {
 	panic("this is not supported")
 }
 
@@ -107,7 +117,8 @@ func (c *RollappClient) LatestStateIndex(ctx context.Context, in *rollapptypes.Q
 	if err != nil {
 		return nil, err
 	}
-	queryData := fmt.Sprintf("{\"rollapp\":{\"latestStateIndex\":%s}}", string(msgBytes))
+	convertedBytes := convertKeys(msgBytes, toSnake)
+	queryData := fmt.Sprintf("{\"rollapp\":{\"latest_state_index\":%s}}", string(convertedBytes))
 	queryRes, err :=
 		c.inner.SmartContractState(ctx, &wasmtypes.QuerySmartContractStateRequest{
 			Address:   c.constract,
@@ -117,8 +128,9 @@ func (c *RollappClient) LatestStateIndex(ctx context.Context, in *rollapptypes.Q
 		return nil, err
 	}
 
+	resBytes := convertKeys(queryRes.Data.Bytes(), toLowerCamel)
 	var contractRes rollapptypes.QueryGetLatestStateIndexResponse
-	if err := tmjson.Unmarshal(queryRes.Data, &contractRes); err != nil {
+	if err := c.context.Codec.UnmarshalJSON(resBytes, &contractRes); err != nil {
 		return nil, err
 	}
 	return &contractRes, nil
@@ -130,7 +142,8 @@ func (c *RollappClient) StateInfo(ctx context.Context, in *rollapptypes.QueryGet
 	if err != nil {
 		return nil, err
 	}
-	queryData := fmt.Sprintf("{\"rollapp\":{\"stateInfo\":%s}}", string(msgBytes))
+	convertedBytes := convertKeys(msgBytes, toSnake)
+	queryData := fmt.Sprintf("{\"rollapp\":{\"state_info\":%s}}", string(convertedBytes))
 	queryRes, err :=
 		c.inner.SmartContractState(ctx, &wasmtypes.QuerySmartContractStateRequest{
 			Address:   c.constract,
@@ -140,8 +153,9 @@ func (c *RollappClient) StateInfo(ctx context.Context, in *rollapptypes.QueryGet
 		return nil, err
 	}
 
+	resBytes := convertKeys(queryRes.Data.Bytes(), toLowerCamel)
 	var contractRes rollapptypes.QueryGetStateInfoResponse
-	if err := tmjson.Unmarshal(queryRes.Data, &contractRes); err != nil {
+	if err := c.context.Codec.UnmarshalJSON(resBytes, &contractRes); err != nil {
 		return nil, err
 	}
 	return &contractRes, nil
@@ -155,6 +169,7 @@ func (c *RollappClient) StateInfoAll(ctx context.Context, in *rollapptypes.Query
 type SequencerClient struct {
 	inner     wasmtypes.QueryClient
 	constract string
+	context   sdkclient.Context
 }
 
 // Parameters queries the parameters of the module.
@@ -178,7 +193,8 @@ func (c *SequencerClient) SequencersByRollapp(ctx context.Context, in *sequencer
 	if err != nil {
 		return nil, err
 	}
-	queryData := fmt.Sprintf("{\"sequencer\":{\"sequencersByRollapp\":%s}}", string(msgBytes))
+	convertedBytes := convertKeys(msgBytes, toSnake)
+	queryData := fmt.Sprintf("{\"sequencer\":{\"sequencers_by_rollapp\":%s}}", string(convertedBytes))
 	queryRes, err :=
 		c.inner.SmartContractState(ctx, &wasmtypes.QuerySmartContractStateRequest{
 			Address:   c.constract,
@@ -188,8 +204,9 @@ func (c *SequencerClient) SequencersByRollapp(ctx context.Context, in *sequencer
 		return nil, err
 	}
 
+	resBytes := convertKeys(queryRes.Data.Bytes(), toLowerCamel)
 	var contractRes sequencertypes.QueryGetSequencersByRollappResponse
-	if err := tmjson.Unmarshal(queryRes.Data, &contractRes); err != nil {
+	if err := c.context.Codec.UnmarshalJSON(resBytes, &contractRes); err != nil {
 		return nil, err
 	}
 	return &contractRes, nil
@@ -208,4 +225,59 @@ func (c *SequencerClient) Scheduler(ctx context.Context, in *sequencertypes.Quer
 // Queries a list of Scheduler items.
 func (c *SequencerClient) SchedulerAll(ctx context.Context, in *sequencertypes.QueryAllSchedulerRequest, opts ...grpc.CallOption) (*sequencertypes.QueryAllSchedulerResponse, error) {
 	panic("this is not supported")
+}
+
+func convertKeys(j json.RawMessage, fixKey func(key string) string) json.RawMessage {
+	m := make(map[string]json.RawMessage)
+	if err := json.Unmarshal([]byte(j), &m); err == nil {
+		new := make(map[string]json.RawMessage)
+		for k, v := range m {
+			switch k {
+			case "@type":
+				new["@type"] = convertKeys(v, fixKey)
+			default:
+				fixed := fixKey(k)
+				new[fixed] = convertKeys(v, fixKey)
+			}
+		}
+
+		b, err := json.Marshal(new)
+		if err != nil {
+			return j
+		}
+		return json.RawMessage(b)
+	}
+
+	l := []json.RawMessage{}
+	if err := json.Unmarshal([]byte(j), &l); err == nil {
+		new := make([]json.RawMessage, len(l))
+		for i := range l {
+			new[i] = convertKeys(l[i], fixKey)
+		}
+
+		b, err := json.Marshal(new)
+		if err != nil {
+			return j
+		}
+		return json.RawMessage(b)
+	}
+
+	return j
+}
+
+func toLowerCamel(key string) string {
+	switch key {
+	case "da_path":
+		return "DAPath"
+	case "b_ds":
+		return "BDs"
+	case "bd":
+		return "BD"
+	default:
+		return strcase.ToLowerCamel(key)
+	}
+}
+
+func toSnake(key string) string {
+	return strcase.ToSnake(key)
 }
